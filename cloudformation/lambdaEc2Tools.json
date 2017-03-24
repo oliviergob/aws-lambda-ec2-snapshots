@@ -1,0 +1,36 @@
+{
+      "AWSTemplateFormatVersion" : "2010-09-09",
+      "Resources" : {
+          "ec2SnapshotTakerLambdaExecutionRole": {
+             "Type": "AWS::IAM::Role",
+             "Properties": {
+               "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                      },
+                      "Action": "sts:AssumeRole"
+                    }
+                  ]
+               },
+               "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
+               "RoleName": { "Fn::Join" : [ "", [ { "Ref": "AWS::StackName" }, "LambdaExecutionRole" ] ] },
+             }
+          },
+          "ec2SnapshotTaker": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Handler": "com.gobslog.Ec2SnapshotTaker::lambdaHandler",
+              "FunctionName": "ec2SnapshotTaker",
+              "Role": { "Fn::GetAtt" : ["ec2SnapshotTakerLambdaExecutionRole", "Arn"] },
+              "Code": {"ZipFile": "return 0;" },
+              "Runtime": "nodejs4.3",
+              "Timeout": "20",
+              "MemorySize": "128",
+            }
+          }
+      }
+}
