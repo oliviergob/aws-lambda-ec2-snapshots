@@ -62,7 +62,7 @@ public class SnapshotConfig {
 	public void initialise(String config) throws ParseException
 	{
 		// If no config given
-		if (config.length() == 0)
+		if (config == null || config.length() == 0)
 			throw new ParseException("Empty configuration given");
 		
 		// If Snapshots are turned off, let's keep the default value

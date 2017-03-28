@@ -1,6 +1,30 @@
 {
       "AWSTemplateFormatVersion" : "2010-09-09",
       "Resources" : {
+          "ec2SnapShotTakerPolicy" : {
+            "Type" : "AWS::IAM::ManagedPolicy",
+            "Properties" : {
+              "Description" : "Policy for takning snapshots",
+              "Path" : "/",
+              "PolicyDocument" :   {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Sid": "Stmt1490396118000",
+                          "Effect": "Allow",
+                          "Action": [
+                              "ec2:CreateSnapshot",
+                              "ec2:DescribeInstances",
+                              "ec2:DescribeVolumes"
+                          ],
+                          "Resource": [
+                              "*"
+                          ]
+                      }
+                  ]
+              }
+            }
+          },
           "ec2SnapshotTakerLambdaExecutionRole": {
              "Type": "AWS::IAM::Role",
              "Properties": {
@@ -16,14 +40,15 @@
                     }
                   ]
                },
-               "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"],
+               "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                                     { "Ref":  "ec2SnapShotTakerPolicy" }],
                "RoleName": { "Fn::Join" : [ "", [ { "Ref": "AWS::StackName" }, "LambdaExecutionRole" ] ] },
              }
           },
           "ec2SnapshotTaker": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-              "Handler": "om.gobslog.ec2.snapshot.Ec2SnapshotTaker::lambdaHandler",
+              "Handler": "com.gobslog.ec2.snapshot.Ec2SnapshotTaker::lambdaHandler",
               "FunctionName": "ec2SnapshotTaker",
               "Role": { "Fn::GetAtt" : ["ec2SnapshotTakerLambdaExecutionRole", "Arn"] },
               "Code": {"ZipFile": "return 0;" },

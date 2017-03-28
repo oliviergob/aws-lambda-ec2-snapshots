@@ -20,18 +20,19 @@ region=$(jq -r '.region' config.json)
 appName=$(jq -r '.appName' config.json)
 
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-scriptDir="file://${scriptDir//////}//cloudformation//$appName.json"
+cloudformation="file://${scriptDir//////}//cloudformation//$appName.json"
 
 
 # Create the cloudformation stack
 echo
 echo Creating cloudformation stack $appName in $region to create:
-echo "   - IAM Role ec2SnapshotTakerLambdaExecutionRole"
-echo "   - Lambda Function ec2SnapshotTaker"
+echo '   - IAM Managed Policy ec2SnapShotTakerPolicy'
+echo '   - IAM Role ec2SnapshotTakerLambdaExecutionRole'
+echo '   - Lambda Function ec2SnapshotTaker'
 aws cloudformation create-stack \
     --capabilities CAPABILITY_NAMED_IAM \
     --stack-name $appName \
-    --template-body $scriptDir \
+    --template-body $cloudformation \
     --region $region >/dev/null
 
 echo "Waiting for the stack to complete creation, this can take a while"
@@ -45,13 +46,12 @@ if [[ $? != 0 ]]; then
   echo "Login to cloudformation front end and have a look at the event logs"
   exit 1
 fi
-cd -
 
 echo "Cloudformation Stack now fully created"
 
 echo
 # Updating Lambda Functions
-cd functions
+cd $scriptDir/functions
 for f in $(ls -1); do
   echo "Updating $f runtime to java8"
   #Updating the function code
@@ -62,9 +62,9 @@ for f in $(ls -1); do
   echo "Updating function $f end"
 done
 
+echo
+# Now deploying the code into the lambda functions
+cd $scriptDir
+./deploy.sh
 
 exit
-
-
-
-#./deploy.sh
