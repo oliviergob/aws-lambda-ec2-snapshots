@@ -20,6 +20,16 @@
                           "Resource": [
                               "*"
                           ]
+                      },
+                      {
+                          "Sid": "Stmt1490792501000",
+                          "Effect": "Allow",
+                          "Action": [
+                              "ec2:CreateTags"
+                          ],
+                          "Resource": [
+                              "arn:aws:ec2:::snapshot/*"
+                          ]
                       }
                   ]
               }

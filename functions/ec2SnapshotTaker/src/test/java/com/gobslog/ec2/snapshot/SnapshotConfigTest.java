@@ -46,7 +46,7 @@ public class SnapshotConfigTest {
 		SnapshotConfig snapshotConfig = new SnapshotConfig();
 		try {
 			snapshotConfig.initialise("D10");
-			
+			assertTrue(snapshotConfig.isSnapshotOn());
 			assertTrue(snapshotConfig.isDailySnapshot());
 			assertFalse(snapshotConfig.isWeeklySnapshot());
 			assertFalse(snapshotConfig.isMonthlySnapshot());
@@ -60,6 +60,7 @@ public class SnapshotConfigTest {
 		try {
 			snapshotConfig.initialise("W20");
 			
+			assertTrue(snapshotConfig.isSnapshotOn());
 			assertFalse(snapshotConfig.isDailySnapshot());
 			assertTrue(snapshotConfig.isWeeklySnapshot());
 			assertFalse(snapshotConfig.isMonthlySnapshot());
@@ -73,6 +74,7 @@ public class SnapshotConfigTest {
 		try {
 			snapshotConfig.initialise("M30");
 			
+			assertTrue(snapshotConfig.isSnapshotOn());
 			assertFalse(snapshotConfig.isDailySnapshot());
 			assertFalse(snapshotConfig.isWeeklySnapshot());
 			assertTrue(snapshotConfig.isMonthlySnapshot());
@@ -86,6 +88,7 @@ public class SnapshotConfigTest {
 		try {
 			snapshotConfig.initialise("D10,W20,M30");
 			
+			assertTrue(snapshotConfig.isSnapshotOn());
 			assertTrue(snapshotConfig.isDailySnapshot());
 			assertTrue(snapshotConfig.isWeeklySnapshot());
 			assertTrue(snapshotConfig.isMonthlySnapshot());
