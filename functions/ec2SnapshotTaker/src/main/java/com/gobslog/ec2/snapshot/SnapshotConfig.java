@@ -75,6 +75,8 @@ public class SnapshotConfig {
 		if (!matcher.matches())
 			throw new ParseException("Configuration "+config+" does not have a valid format, expecting: [DWM]<9999><,[DWM]<9999>><,[DWM]<9999>>");
 		
+		isSnapshotOn = true;
+		
 		// Let's split the different configuration item
 		for (String configItem : config.split(","))
 		{

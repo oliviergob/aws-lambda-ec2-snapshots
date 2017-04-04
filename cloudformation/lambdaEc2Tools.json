@@ -28,7 +28,7 @@
                               "ec2:CreateTags"
                           ],
                           "Resource": [
-                              "arn:aws:ec2:::snapshot/*"
+                              "arn:aws:ec2:*::snapshot/*"
                           ]
                       }
                   ]
@@ -52,7 +52,7 @@
                },
                "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                                      { "Ref":  "ec2SnapShotTakerPolicy" }],
-               "RoleName": { "Fn::Join" : [ "", [ { "Ref": "AWS::StackName" }, "LambdaExecutionRole" ] ] },
+               "RoleName": "ec2SnapshotTakerLambdaExecutionRole",
              }
           },
           "ec2SnapshotTaker": {
@@ -65,6 +65,27 @@
               "Runtime": "nodejs4.3",
               "Timeout": "120",
               "MemorySize": "256",
+            }
+          },
+          "ec2ToolsScheduledRule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "Description": "ScheduledRule",
+              "ScheduleExpression": "rate(1 day)",
+              "State": "ENABLED",
+              "Targets": [{
+                "Arn": { "Fn::GetAtt": ["ec2SnapshotTaker", "Arn"] },
+                "Id": "ec2SnapshotTakerTarget"
+              }]
+            }
+          },
+          "PermissionForEventsToInvokeLambda": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": { "Ref": "ec2SnapshotTaker" },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": { "Fn::GetAtt": ["ec2ToolsScheduledRule", "Arn"] }
             }
           }
       }

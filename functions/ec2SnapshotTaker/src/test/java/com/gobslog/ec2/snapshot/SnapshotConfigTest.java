@@ -42,8 +42,21 @@ public class SnapshotConfigTest {
 	}
 	
 	@Test
-	public void validFormats() { 
+	public void validFormats() {
+		
 		SnapshotConfig snapshotConfig = new SnapshotConfig();
+		try {
+			snapshotConfig.initialise("OFF No real reason");
+			assertFalse(snapshotConfig.isSnapshotOn());
+			assertFalse(snapshotConfig.isDailySnapshot());
+			assertFalse(snapshotConfig.isWeeklySnapshot());
+			assertFalse(snapshotConfig.isMonthlySnapshot());
+			
+		} catch (ParseException e) {
+			fail("Unexpected ParseException: "+e.getMessage());
+		}
+		
+		snapshotConfig = new SnapshotConfig();
 		try {
 			snapshotConfig.initialise("D10");
 			assertTrue(snapshotConfig.isSnapshotOn());
@@ -58,13 +71,13 @@ public class SnapshotConfigTest {
 		
 		snapshotConfig = new SnapshotConfig();
 		try {
-			snapshotConfig.initialise("W20");
+			snapshotConfig.initialise("W28");
 			
 			assertTrue(snapshotConfig.isSnapshotOn());
 			assertFalse(snapshotConfig.isDailySnapshot());
 			assertTrue(snapshotConfig.isWeeklySnapshot());
 			assertFalse(snapshotConfig.isMonthlySnapshot());
-			assertEquals(20, snapshotConfig.getWeeklyRetentionPeriod());
+			assertEquals(28, snapshotConfig.getWeeklyRetentionPeriod());
 			
 		} catch (ParseException e) {
 			fail("Unexpected ParseException: "+e.getMessage());
@@ -72,13 +85,13 @@ public class SnapshotConfigTest {
 		
 		snapshotConfig = new SnapshotConfig();
 		try {
-			snapshotConfig.initialise("M30");
+			snapshotConfig.initialise("M31");
 			
 			assertTrue(snapshotConfig.isSnapshotOn());
 			assertFalse(snapshotConfig.isDailySnapshot());
 			assertFalse(snapshotConfig.isWeeklySnapshot());
 			assertTrue(snapshotConfig.isMonthlySnapshot());
-			assertEquals(30, snapshotConfig.getMonthlyRetentionPeriod());
+			assertEquals(31, snapshotConfig.getMonthlyRetentionPeriod());
 			
 		} catch (ParseException e) {
 			fail("Unexpected ParseException: "+e.getMessage());
@@ -86,15 +99,15 @@ public class SnapshotConfigTest {
 		
 		snapshotConfig = new SnapshotConfig();
 		try {
-			snapshotConfig.initialise("D10,W20,M30");
+			snapshotConfig.initialise("D12,W22,M32");
 			
 			assertTrue(snapshotConfig.isSnapshotOn());
 			assertTrue(snapshotConfig.isDailySnapshot());
 			assertTrue(snapshotConfig.isWeeklySnapshot());
 			assertTrue(snapshotConfig.isMonthlySnapshot());
-			assertEquals(10, snapshotConfig.getDailyRetentionPeriod());
-			assertEquals(20, snapshotConfig.getWeeklyRetentionPeriod());
-			assertEquals(30, snapshotConfig.getMonthlyRetentionPeriod());
+			assertEquals(12, snapshotConfig.getDailyRetentionPeriod());
+			assertEquals(22, snapshotConfig.getWeeklyRetentionPeriod());
+			assertEquals(32, snapshotConfig.getMonthlyRetentionPeriod());
 			
 		} catch (ParseException e) {
 			fail("Unexpected ParseException: "+e.getMessage());

@@ -29,6 +29,7 @@ echo Creating cloudformation stack $appName in $region to create:
 echo '   - IAM Managed Policy ec2SnapShotTakerPolicy'
 echo '   - IAM Role ec2SnapshotTakerLambdaExecutionRole'
 echo '   - Lambda Function ec2SnapshotTaker'
+echo '   - Cloudwatch Daily Scheduled Rule to trigger ec2SnapshotTaker'
 aws cloudformation create-stack \
     --capabilities CAPABILITY_NAMED_IAM \
     --stack-name $appName \
