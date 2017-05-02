@@ -66,6 +66,6 @@ The Snapshot Taker function follow those simple rules:
   * E.G. Assuming you configured a volume to have all three types of snapshots, on Monday 1st of March, only the monthly snapshot will be taken, both weekly and daily would be skipped as they would be exactly the same.
 
 
-###Still left TODO
+### Still left TODO
 * Create the snapshotDeleter Lambda function. Currently snapshots have a deletion date but there is nothing deleting them
 * Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance
