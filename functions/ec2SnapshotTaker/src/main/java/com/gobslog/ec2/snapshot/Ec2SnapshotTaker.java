@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
@@ -24,6 +25,7 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.Volume;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.gobslog.ec2.Ec2Utils;
 
 public class Ec2SnapshotTaker {
 	
@@ -57,14 +59,49 @@ public class Ec2SnapshotTaker {
     private boolean isWeeklySnapshot = false;
     /** Boolean flag saying if monthly snapshot should be taken today */
     private boolean isMonthlySnapshot = false;
-    
+
     
     
     public void lambdaHandler(Map<String,Object> input, Context context) {
+    	
+    	// Getting the regions take snapshot in
+    	String regionsString = System.getenv("REGIONS");
+    	// Validating and loading the regions
+    	List<String> regions = Ec2Utils.loadRegions(regionsString);
+		
+    	if (regions == null || regions.isEmpty())
+    		takeSnapshotsForRegion(null);
+    	else
+    		for (String region : regions)
+    		{
+    			takeSnapshotsForRegion(region);
+    		}
         
+    }
+    
+    
+    /**
+     * Method taking Snapshot for a region
+     * @param region - the region to take snapshots in
+     */
+    private void takeSnapshotsForRegion(String region)
+    {
     	// Building EC2 CLient
-    	AmazonEC2ClientBuilder builder = AmazonEC2Client.builder();
-    	ec2Client = builder.build();
+    	AmazonEC2ClientBuilder builder;
+    	if (region != null)
+    	{
+    		logger.info("Taking snapshots for region "+region);
+    		builder = AmazonEC2Client.builder().withRegion(region);
+    	}
+    	else
+    	{
+    		logger.info("Taking snapshots for default region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
+    		builder = AmazonEC2Client.builder();
+    	}
+    		
+		
+		
+		ec2Client = builder.build();
     	
     	// Loading EC2 Volumes
     	initialiseVolumeSnapshotConfigMap();
@@ -142,8 +179,6 @@ public class Ec2SnapshotTaker {
     			
         	}
     	}
-    	
-        
     }
     
     /**
@@ -315,4 +350,6 @@ public class Ec2SnapshotTaker {
     	
     	return DATE_FORMAT.format(cal.getTime());
     }
+    
+    
 }

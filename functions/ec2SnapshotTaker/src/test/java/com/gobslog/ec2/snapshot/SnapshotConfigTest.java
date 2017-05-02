@@ -113,6 +113,22 @@ public class SnapshotConfigTest {
 			fail("Unexpected ParseException: "+e.getMessage());
 		}
 		
+		snapshotConfig = new SnapshotConfig();
+		try {
+			snapshotConfig.initialise("D12,W22,M32 ");
+			
+			assertTrue(snapshotConfig.isSnapshotOn());
+			assertTrue(snapshotConfig.isDailySnapshot());
+			assertTrue(snapshotConfig.isWeeklySnapshot());
+			assertTrue(snapshotConfig.isMonthlySnapshot());
+			assertEquals(12, snapshotConfig.getDailyRetentionPeriod());
+			assertEquals(22, snapshotConfig.getWeeklyRetentionPeriod());
+			assertEquals(32, snapshotConfig.getMonthlyRetentionPeriod());
+			
+		} catch (ParseException e) {
+			fail("Unexpected ParseException: "+e.getMessage());
+		}
+		
 	}
 
 }

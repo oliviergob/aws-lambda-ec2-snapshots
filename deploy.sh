@@ -3,14 +3,14 @@
 # Check if the AWS CLI is in the PATH
 found=$(which aws)
 if [ -z "$found" ]; then
-  echo "Please install the AWS CLI under your PATH: http://aws.amazon.com/cli/"
+  echo "Please install the AWS CLI: http://aws.amazon.com/cli/"
   exit 1
 fi
 
 # Check if jq is in the PATH
 found=$(which jq)
 if [ -z "$found" ]; then
-  echo "Please install jq under your PATH: http://stedolan.github.io/jq/"
+  echo "Please install jq: http://stedolan.github.io/jq/"
   exit 1
 fi
 
@@ -38,6 +38,15 @@ for f in $(ls -1); do
     --region $region \
     --function-name $f \
     --zip-file fileb://./build/distributions/$f.zip
+
+  #Updating the function environment variables
+  echo
+  echo "Updating function environment Variables for $f"
+  aws lambda update-function-configuration \
+    --region $region \
+    --function-name $f \
+    --environment fileb://./config.json
+
   cd ..
   echo "Function $f updated"
 done

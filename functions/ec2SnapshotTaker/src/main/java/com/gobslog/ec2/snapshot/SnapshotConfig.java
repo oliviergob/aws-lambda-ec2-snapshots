@@ -69,6 +69,8 @@ public class SnapshotConfig {
 		if (config.toLowerCase().startsWith(SNAPSHOT_OFF))
 			return;
 		
+		config = config.trim();
+		
 		// Let's check if the config is valid
 		Pattern pattern = Pattern.compile(CONFIG_REGEX);
 		Matcher matcher = pattern.matcher(config);

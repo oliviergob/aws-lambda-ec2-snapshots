@@ -21,10 +21,15 @@ This project aims to contains a collection of tools to administrate an EC2 insta
 * [Gradle](https://gradle.org/install)
 
 ## Create your config.json
-* Clone the repository and copy config.json.sample to config.json
+* Clone the repository and copy config.json.sample to config.json in the root directory
 * Change the properties
   * region - the ascertain region you want the tools to be installed in
   * appName - the application name (used by the deploy script to name resources in AWS)
+
+## Configure ec2SnapshotTaker
+  * Copy config.json.sample to config.json in ./functions/ec2SnapshotTaker
+  * Change the properties
+    * REGIONS - comma separated list of regions to take snapshots in (will use default region if not configured or left blank)
 
 ## Run the init.sh script
 ```./init.sh```
@@ -62,6 +67,5 @@ The Snapshot Taker function follow those simple rules:
 
 
 ###Still left TODO
-* Allow for a configurable list of regions for the snapshotTaker function to operate in. Currently it will only take snapshots for instances in the region it has been deployed in.
 * Create the snapshotDeleter Lambda function. Currently snapshots have a deletion date but there is nothing deleting them
 * Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance
