@@ -65,11 +65,15 @@ public class Ec2SnapshotTaker {
     
     
     public void lambdaHandler(Map<String,Object> input, Context context) {
-    	
+    	   	
     	// Getting the regions take snapshot in
     	String regionsString = System.getenv("REGIONS");
+ 
     	// Validating and loading the regions
     	List<String> regions = Ec2Utils.loadRegions(regionsString);
+    	
+    	
+    	logger.info("Snapshot regions configured "+regionsString);
 		
     	if (regions == null || regions.isEmpty())
     		takeSnapshotsForRegion(null);

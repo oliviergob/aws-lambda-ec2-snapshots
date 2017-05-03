@@ -29,6 +29,7 @@ echo Creating cloudformation stack $appName in $region to create:
 echo '   - IAM Managed Policy ec2SnapShotTakerPolicy'
 echo '   - IAM Role ec2SnapshotTakerLambdaExecutionRole'
 echo '   - Lambda Function ec2SnapshotTaker'
+echo '   - Lambda Function ec2SnapshotDeleter'
 echo '   - Cloudwatch Daily Scheduled Rule to trigger ec2SnapshotTaker'
 aws cloudformation create-stack \
     --capabilities CAPABILITY_NAMED_IAM \
@@ -37,7 +38,7 @@ aws cloudformation create-stack \
     --region $region >/dev/null
 
 echo "Waiting for the stack to complete creation, this can take a while"
-sleep 5
+sleep 10
 
 aws cloudformation wait stack-create-complete \
     --stack-name $appName \
@@ -53,7 +54,9 @@ echo "Cloudformation Stack now fully created"
 echo
 # Updating Lambda Functions
 cd $scriptDir/functions
-for f in $(ls -1); do
+for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
+  f="${f%.*}"
+  f="$(echo "$f" | sed 's/.*/\l&/')"
   echo "Updating $f runtime to java8"
   #Updating the function code
   aws lambda update-function-configuration \

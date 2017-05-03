@@ -58,8 +58,20 @@
           "ec2SnapshotTaker": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-              "Handler": "com.gobslog.ec2.snapshot.Ec2SnapshotTaker::lambdaHandler",
+              "Handler": "com.gobslog.ec2.functions.Ec2SnapshotTaker::lambdaHandler",
               "FunctionName": "ec2SnapshotTaker",
+              "Role": { "Fn::GetAtt" : ["ec2SnapshotTakerLambdaExecutionRole", "Arn"] },
+              "Code": {"ZipFile": "return 0;" },
+              "Runtime": "nodejs4.3",
+              "Timeout": "120",
+              "MemorySize": "256",
+            }
+          },
+          "ec2SnapshotDeleter": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Handler": "com.gobslog.ec2.functions.Ec2SnapshotDeleter::lambdaHandler",
+              "FunctionName": "ec2SnapshotDeleter",
               "Role": { "Fn::GetAtt" : ["ec2SnapshotTakerLambdaExecutionRole", "Arn"] },
               "Code": {"ZipFile": "return 0;" },
               "Runtime": "nodejs4.3",

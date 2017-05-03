@@ -19,36 +19,36 @@ region=$(jq -r '.region' config.json)
 appName=$(jq -r '.appName' config.json)
 
 cd functions
+echo "Building functions project"
+gradle build
+if [[ $? != 0 ]]; then
+  echo "Failed building functions project"
+  exit 1
+fi
+
 
 echo
 # Updating Lambda Functions
-for f in $(ls -1); do
-  echo "Building function $f"
-  cd $f
-  gradle build
-  if [[ $? != 0 ]]; then
-    echo "Failed building function $f"
-    exit 1
-  fi
+for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
+  functionName="${f%.*}"
+  functionName="$(echo "$functionName" | sed 's/.*/\l&/')"
 
   #Updating the function code
   echo
-  echo "Deploying Code for function $f"
+  echo "Deploying Code for function $functionName"
   aws lambda update-function-code \
     --region $region \
-    --function-name $f \
-    --zip-file fileb://./build/distributions/$f.zip
+    --function-name $functionName\
+    --zip-file fileb://./build/distributions/functions.zip >/dev/null
 
   #Updating the function environment variables
-  echo
-  echo "Updating function environment Variables for $f"
+  echo "Updating function environment Variables for $functionName"
   aws lambda update-function-configuration \
     --region $region \
-    --function-name $f \
-    --environment fileb://./config.json
+    --function-name $functionName \
+    --environment fileb://./config.json >/dev/null
 
-  cd ..
-  echo "Function $f updated"
+  echo "Function $functionName updated"
 done
 
 cd ..

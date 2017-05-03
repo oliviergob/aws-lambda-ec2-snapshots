@@ -67,5 +67,9 @@ The Snapshot Taker function follow those simple rules:
 
 
 ### Still left TODO
-* Create the snapshotDeleter Lambda function. Currently snapshots have a deletion date but there is nothing deleting them
+* snapshotDeleter Lambda function is Work In Progress. Still need to:
+  * Create Policy / Role
+  * Create schedule
+  * Test
+  * Document
 * Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance
