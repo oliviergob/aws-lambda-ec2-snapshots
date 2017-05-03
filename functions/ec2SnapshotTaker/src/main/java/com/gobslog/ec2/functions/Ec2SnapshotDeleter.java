@@ -1,7 +1,7 @@
-package com.gobslog.ec2.snapshot;
+package com.gobslog.ec2.functions;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,19 +12,14 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.ec2.model.DeleteSnapshotRequest;
 import com.amazonaws.services.ec2.model.Snapshot;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.util.StringUtils;
 import com.gobslog.ec2.Ec2Utils;
 
 public class Ec2SnapshotDeleter {
-	
-	/** Snapshot Tag - Deletion Date */
-	private static final String SNAPSHOT_TAG_DELETION_DATE = "DeletionDate";
-	/** Snapshot Tag - Device Name */
-	/** Date Format - used for tagging the instance */
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
 	
 	/** log4j logger */
     static final Logger logger = Logger.getLogger(Ec2SnapshotDeleter.class);
@@ -56,7 +51,7 @@ public class Ec2SnapshotDeleter {
      */
     private void deleteSnapshotsForRegion(String region)
     {
-    	// Building EC2 CLient
+    	// Setting up the EC2 Client Builder with the correct region
     	AmazonEC2ClientBuilder builder;
     	if (region != null)
     	{
@@ -68,11 +63,19 @@ public class Ec2SnapshotDeleter {
     		logger.info("Deleting snapshots for default region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
     		builder = AmazonEC2Client.builder();
     	}
-    		
-		
-		
+    	
+    	// Building EC2 CLient
 		ec2Client = builder.build();
 		
+		Calendar todayCal = Calendar.getInstance();
+		todayCal.set(Calendar.HOUR_OF_DAY, 0); 
+		todayCal.set(Calendar.MINUTE, 0);
+		todayCal.set(Calendar.SECOND, 0);
+		todayCal.set(Calendar.MILLISECOND, 0);
+		
+		logger.info("Today's date "+todayCal);
+		
+		Date today = new Date (todayCal.getTimeInMillis());
 		
 		// For all the snapshots
 		for (Snapshot snapshot : ec2Client.describeSnapshots().getSnapshots())
@@ -81,10 +84,29 @@ public class Ec2SnapshotDeleter {
 			// Reading the snapshot tags
 			for (Tag tag : snapshot.getTags())
 			{
-				// Looking for the Snapshot Config Tag
-				if (SNAPSHOT_TAG_DELETION_DATE.equals(tag.getKey()))
+				// Looking for the Snapshot Deletion Tag
+				if (Ec2SnapshotTaker.SNAPSHOT_TAG_DELETION_DATE.equals(tag.getKey()))
+				{
 					snapshotDeleteDateTag = tag.getValue();
+					break;
+				}
+					
 			}
+			
+			// If no snapshot tag could be found
+			if (StringUtils.isNullOrEmpty(snapshotDeleteDateTag))
+			{
+				logger.error("Snapshot "+snapshot.getSnapshotId()+" does is missing tag "+Ec2SnapshotTaker.SNAPSHOT_TAG_DELETION_DATE);
+			}
+			
+			// if the snapshot should be deleted?
+			if (isSnapshotDeletable(snapshotDeleteDateTag, today))
+			{
+				logger.info("deleting snapshot "+snapshot.getSnapshotId());
+				DeleteSnapshotRequest deleteSnapshotRequest = new DeleteSnapshotRequest(snapshot.getSnapshotId());
+				ec2Client.deleteSnapshot(deleteSnapshotRequest);
+			}
+			
 			
 		}
 		
@@ -101,7 +123,7 @@ public class Ec2SnapshotDeleter {
     {
     	
     	try {
-			Date deletionDate = DATE_FORMAT.parse(snapshotDeleteDateTag);
+			Date deletionDate = Ec2SnapshotTaker.DATE_FORMAT.parse(snapshotDeleteDateTag);
 			return ( today.compareTo(deletionDate) >= 0  );
 		} catch (ParseException e) 
     	{

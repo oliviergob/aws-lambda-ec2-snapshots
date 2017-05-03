@@ -11,6 +11,8 @@ import static org.hamcrest.core.Is.*;
 
 import org.junit.Test;
 
+import com.gobslog.ec2.functions.Ec2SnapshotDeleter;
+
 public class Ec2SnapshotDeleterTest {
 	
 	

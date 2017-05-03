@@ -1,4 +1,4 @@
-package com.gobslog.ec2.snapshot;
+package com.gobslog.ec2.functions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,6 +26,8 @@ import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.Volume;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.gobslog.ec2.Ec2Utils;
+import com.gobslog.ec2.snapshot.ParseException;
+import com.gobslog.ec2.snapshot.SnapshotConfig;
 
 public class Ec2SnapshotTaker {
 	
@@ -36,7 +38,7 @@ public class Ec2SnapshotTaker {
 	/** Snapshot Tag - Name */
 	private static final String SNAPSHOT_TAG_NAME = "Name";
 	/** Snapshot Tag - Deletion Date */
-	private static final String SNAPSHOT_TAG_DELETION_DATE = "DeletionDate";
+	protected static final String SNAPSHOT_TAG_DELETION_DATE = "DeletionDate";
 	/** Snapshot Tag - Device Name */
 	private static final String SNAPSHOT_TAG_DEVICE_NAME = "DeviceName";
 	/** Daily Snapshot description used for tagging */
@@ -46,7 +48,7 @@ public class Ec2SnapshotTaker {
 	/** Monthly Snapshot description used for tagging */
 	private static final String SNAPSHOT_MONTHLY = "monthly";
 	/** Date Format - used for tagging the instance */
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+	protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 	
 	/** log4j logger */
@@ -86,7 +88,7 @@ public class Ec2SnapshotTaker {
      */
     private void takeSnapshotsForRegion(String region)
     {
-    	// Building EC2 CLient
+    	// Setting up the EC2 Client Builder with the correct region
     	AmazonEC2ClientBuilder builder;
     	if (region != null)
     	{
@@ -100,7 +102,7 @@ public class Ec2SnapshotTaker {
     	}
     		
 		
-		
+    	// Building EC2 CLient
 		ec2Client = builder.build();
     	
     	// Loading EC2 Volumes
