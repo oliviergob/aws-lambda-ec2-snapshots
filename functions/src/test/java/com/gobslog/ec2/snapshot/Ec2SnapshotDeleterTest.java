@@ -24,7 +24,7 @@ public class Ec2SnapshotDeleterTest {
 		try {
 			ec2SnapshotDeleter.isSnapshotDeletable("2017/06/04", today);
 			fail("Expected an IllegalStateException to be thrown");
-		} catch (IllegalStateException e) {
+		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), is("Invalid date format 2017/06/04"));
 		}
 		
@@ -32,8 +32,32 @@ public class Ec2SnapshotDeleterTest {
 		try {
 			ec2SnapshotDeleter.isSnapshotDeletable("20170401", today);
 			fail("Expected an IllegalStateException to be thrown");
-		} catch (IllegalStateException e) {
+		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), is("Invalid date format 20170401"));
+		}
+		
+		ec2SnapshotDeleter = new Ec2SnapshotDeleter();
+		try {
+			ec2SnapshotDeleter.isSnapshotDeletable("", today);
+			fail("Expected an IllegalStateException to be thrown");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), is("Both snapshotDeleteDateTag and today are mandatory parameters"));
+		}
+		
+		ec2SnapshotDeleter = new Ec2SnapshotDeleter();
+		try {
+			ec2SnapshotDeleter.isSnapshotDeletable(null, today);
+			fail("Expected an IllegalStateException to be thrown");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), is("Both snapshotDeleteDateTag and today are mandatory parameters"));
+		}
+		
+		ec2SnapshotDeleter = new Ec2SnapshotDeleter();
+		try {
+			ec2SnapshotDeleter.isSnapshotDeletable("2017-05-01", null);
+			fail("Expected an IllegalStateException to be thrown");
+		} catch (IllegalArgumentException e) {
+			assertThat(e.getMessage(), is("Both snapshotDeleteDateTag and today are mandatory parameters"));
 		}
 		
 	}

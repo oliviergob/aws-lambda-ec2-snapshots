@@ -1,14 +1,11 @@
 # Lambda EC2 tools
 
-This project aims to contains a collection of tools to administrate an EC2 instance estate using Amazon Lambda functions.
+This project aims to contains a collection of tools to administrate an EC2 estate using Amazon Lambda functions.
 
 **Existing functionalities**
 
   - EC2 Instance Automated Snapshots
 
-**Todo**
-
-- EC2 Instance Automated Start and Stop
 
 # Installation and Configuration
 ## prerequisites
@@ -65,11 +62,9 @@ The Snapshot Taker function follow those simple rules:
 * Only one snapshot will be taken on one given day for one volume.
   * E.G. Assuming you configured a volume to have all three types of snapshots, on Monday 1st of March, only the monthly snapshot will be taken, both weekly and daily would be skipped as they would be exactly the same.
 
+# EC2 Instance Automated Snapshots Deletion
+The Lambda function ec2SnapshotDeleter is being called daily by a Cloudwatch schedule event.
 
 ### Still left TODO
-* snapshotDeleter Lambda function is Work In Progress. Still need to:
-  * Create Policy / Role
-  * Create schedule
-  * Test
-  * Document
+* Is the list of region what we really want? Is it not better to deploy the function in each region we want to manage and each function is responsible for its region? (might also allow us to handle a bigger estate with the 5 minute lambda execution limit)
 * Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance

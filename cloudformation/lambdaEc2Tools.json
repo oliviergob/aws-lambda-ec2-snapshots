@@ -35,6 +35,29 @@
               }
             }
           },
+          "ec2SnapShotDeleterPolicy" : {
+            "Type" : "AWS::IAM::ManagedPolicy",
+            "Properties" : {
+              "Description" : "Policy for deleting snapshots",
+              "Path" : "/",
+              "PolicyDocument" :   {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Sid": "Stmt1490396118066",
+                          "Effect": "Allow",
+                          "Action": [
+                              "ec2:DescribeSnapshots",
+                              "ec2:DeleteSnapshot"
+                          ],
+                          "Resource": [
+                              "*"
+                          ]
+                      }
+                  ]
+              }
+            }
+          },
           "ec2SnapshotTakerLambdaExecutionRole": {
              "Type": "AWS::IAM::Role",
              "Properties": {
@@ -55,6 +78,26 @@
                "RoleName": "ec2SnapshotTakerLambdaExecutionRole",
              }
           },
+          "ec2SnapshotDeleterLambdaExecutionRole": {
+             "Type": "AWS::IAM::Role",
+             "Properties": {
+               "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": "lambda.amazonaws.com"
+                      },
+                      "Action": "sts:AssumeRole"
+                    }
+                  ]
+               },
+               "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                                     { "Ref":  "ec2SnapShotDeleterPolicy" }],
+               "RoleName": "ec2SnapshotDeleterLambdaExecutionRole",
+             }
+          },
           "ec2SnapshotTaker": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -72,7 +115,7 @@
             "Properties": {
               "Handler": "com.gobslog.ec2.functions.Ec2SnapshotDeleter::lambdaHandler",
               "FunctionName": "ec2SnapshotDeleter",
-              "Role": { "Fn::GetAtt" : ["ec2SnapshotTakerLambdaExecutionRole", "Arn"] },
+              "Role": { "Fn::GetAtt" : ["ec2SnapshotDeleterLambdaExecutionRole", "Arn"] },
               "Code": {"ZipFile": "return 0;" },
               "Runtime": "nodejs4.3",
               "Timeout": "120",
@@ -88,7 +131,12 @@
               "Targets": [{
                 "Arn": { "Fn::GetAtt": ["ec2SnapshotTaker", "Arn"] },
                 "Id": "ec2SnapshotTakerTarget"
-              }]
+              },
+              {
+                "Arn": { "Fn::GetAtt": ["ec2SnapshotDeleter", "Arn"] },
+                "Id": "ec2SnapshotDeleterTarget"
+              }
+            ]
             }
           },
           "PermissionForEventsToInvokeLambda": {

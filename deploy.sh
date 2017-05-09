@@ -15,7 +15,7 @@ if [ -z "$found" ]; then
 fi
 
 # Read other configuration from config.json
-region=$(jq -r '.region' config.json)
+region=$(jq -r '.deploymentRegion' config.json)
 appName=$(jq -r '.appName' config.json)
 
 cd functions

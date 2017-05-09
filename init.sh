@@ -16,7 +16,7 @@ fi
 
 # Read other configuration from config.json
 cliProfile=$(jq -er '.cliProfile' config.json)
-region=$(jq -r '.region' config.json)
+region=$(jq -r '.deploymentRegion' config.json)
 appName=$(jq -r '.appName' config.json)
 
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -27,10 +27,13 @@ cloudformation="file://${scriptDir//////}//cloudformation//$appName.json"
 echo
 echo Creating cloudformation stack $appName in $region to create:
 echo '   - IAM Managed Policy ec2SnapShotTakerPolicy'
+echo '   - IAM Managed Policy ec2SnapShotDeleterPolicy'
 echo '   - IAM Role ec2SnapshotTakerLambdaExecutionRole'
+echo '   - IAM Role ec2SnapshotDeleterLambdaExecutionRole'
 echo '   - Lambda Function ec2SnapshotTaker'
 echo '   - Lambda Function ec2SnapshotDeleter'
 echo '   - Cloudwatch Daily Scheduled Rule to trigger ec2SnapshotTaker'
+echo '   - Cloudwatch Daily Scheduled Rule to trigger ec2SnapshotDeleter'
 aws cloudformation create-stack \
     --capabilities CAPABILITY_NAMED_IAM \
     --stack-name $appName \
