@@ -1,9 +1,9 @@
-# EC2 Instance Automated Snapshots
+# EC2 Volumes Automated Snapshots
 
-This project is composed of a set of AWS Lambda Functions to automate EC2 Snapshots creation and their deletion.
+This project is composed of a set of AWS Lambda Functions to automate EC2 volumes snapshots creation and deletion.
 
 
-## EC2 Instance Automated Snapshots Creation
+## Automated Snapshots Creation
 The Lambda function ec2SnapshotTaker is being called daily by a Cloudwatch schedule event.
 Snapshots can be configured at the EC2 instance level or at the volume level by adding a tag called SnapshotConfig.
 SnapshotConfig value is a comma separated list of a letter representing the periodicity of the snapshot (D for Daily, W for Weekly and M for Monthly) followed by the retention period in days (integer).
@@ -17,6 +17,7 @@ Examples of valid SnapshotConfig values:
 
 The Snapshot Taker function follow those simple rules:
 
+* Only volumes attached to an instance are considered for a snapshot, unattached volumes are ignored
 * Instance level configuration overrides volume configuration
 * You can turn off snapshots by either not configuring a SnapshotConfig tag or by setting it to OFF followed by a comment of your choice
   * E.G.: OFF - No snapshot required for database volume  
@@ -28,8 +29,9 @@ The Snapshot Taker function follow those simple rules:
 * Only one snapshot will be taken on one given day for one volume.
   * E.G. Assuming you configured a volume to have all three types of snapshots, on Monday 1st of March, only the monthly snapshot will be taken, both weekly and daily would be skipped as they would be exactly the same.
 
-## EC2 Instance Automated Snapshots Deletion
+## Automated Snapshots Deletion
 The Lambda function ec2SnapshotDeleter is being called daily by a Cloudwatch schedule event.
+It will delete any snapshot with a DeletionDate lower or equal to today's date.
 
 # Installation and Configuration
 ## prerequisites
@@ -53,7 +55,7 @@ E.G.:
   {
     "deploymentRegion": "us-east-1",
     "managementRegions": "us-east-1|eu-west-1",
-    "appName": "lambdaEc2Tools"
+    "appName": "lambdaEc2Snapshots"
   }
 ```
 
