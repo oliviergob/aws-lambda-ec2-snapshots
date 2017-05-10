@@ -65,7 +65,7 @@ for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
   aws lambda update-function-configuration \
     --region $region \
     --function-name $f \
-    --runtime java8
+    --runtime java8 >/dev/null
   echo "Updating function $f end"
 done
 

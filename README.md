@@ -1,43 +1,9 @@
-# Lambda EC2 tools
-
-This project aims to contains a collection of tools to administrate an EC2 estate using Amazon Lambda functions.
-
-**Existing functionalities**
-
-  - EC2 Instance Automated Snapshots
-
-
-# Installation and Configuration
-## prerequisites
-* A linux host to execute the install scripts
-* [aws-cli](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) installed version 1.11.35 or greater
-* [jq](https://stedolan.github.io/jq/)
-* An IAM user with administrator privileges and access keys set up (it can be a temporary user just for deploying the project)
-* IAM user access keys set up in ~/.aws/credentials
-* [Java 8 JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* [Gradle](https://gradle.org/install)
-
-## Create your config.json
-* Clone the repository and copy config.json.sample to config.json in the root directory
-* Change the properties
-  * region - the ascertain region you want the tools to be installed in
-  * appName - the application name (used by the deploy script to name resources in AWS)
-
-## Configure ec2SnapshotTaker
-  * Copy config.json.sample to config.json in ./functions/ec2SnapshotTaker
-  * Change the properties
-    * REGIONS - comma separated list of regions to take snapshots in (will use default region if not configured or left blank)
-
-## Run the init.sh script
-```./init.sh```
-
-You are all done now!
-
-## Disable AWS Access Keys
-Once the the install is complete it is recommended to disable the AWS Access Keys and delete ~/.aws/credentials. You won't need those anymore.
-You can also delete the IAM user if it was a temporary one.
-
 # EC2 Instance Automated Snapshots
+
+This project is composed of a set of AWS Lambda Functions to automate EC2 Snapshots creation and their deletion.
+
+
+## EC2 Instance Automated Snapshots Creation
 The Lambda function ec2SnapshotTaker is being called daily by a Cloudwatch schedule event.
 Snapshots can be configured at the EC2 instance level or at the volume level by adding a tag called SnapshotConfig.
 SnapshotConfig value is a comma separated list of a letter representing the periodicity of the snapshot (D for Daily, W for Weekly and M for Monthly) followed by the retention period in days (integer).
@@ -62,8 +28,44 @@ The Snapshot Taker function follow those simple rules:
 * Only one snapshot will be taken on one given day for one volume.
   * E.G. Assuming you configured a volume to have all three types of snapshots, on Monday 1st of March, only the monthly snapshot will be taken, both weekly and daily would be skipped as they would be exactly the same.
 
-# EC2 Instance Automated Snapshots Deletion
+## EC2 Instance Automated Snapshots Deletion
 The Lambda function ec2SnapshotDeleter is being called daily by a Cloudwatch schedule event.
+
+# Installation and Configuration
+## prerequisites
+* A linux host to execute the install scripts
+* [aws-cli](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) installed version 1.11.35 or greater
+* [jq](https://stedolan.github.io/jq/)
+* An IAM user with administrator privileges and access keys set up (it can be a temporary user just for deploying the project)
+* IAM user access keys set up in ~/.aws/credentials
+* [Java 8 JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [Gradle](https://gradle.org/install)
+
+## Create your config.json
+* Clone the repository and copy config.json.sample to config.json in the root directory
+* Change the properties
+  * deploymentRegion - the ascertain region you want the application to be installed in
+  * managementRegions - pipe separated list of regions to take snapshots in (will use default region if not configured or left blank)
+  * appName - the application name (used by the deploy script to name resources in AWS)
+
+E.G.:
+```
+  {
+    "deploymentRegion": "us-east-1",
+    "managementRegions": "us-east-1|eu-west-1",
+    "appName": "lambdaEc2Tools"
+  }
+```
+
+## Run the init.sh script
+```./init.sh```
+
+You are all done now!
+
+## Disable AWS Access Keys
+Once the the install is complete it is recommended to disable the AWS Access Keys and delete ~/.aws/credentials. You won't need those anymore.
+You can also delete the IAM user if it was a temporary one.
+
 
 ### Still left TODO
 * Is the list of region what we really want? Is it not better to deploy the function in each region we want to manage and each function is responsible for its region? (might also allow us to handle a bigger estate with the 5 minute lambda execution limit)

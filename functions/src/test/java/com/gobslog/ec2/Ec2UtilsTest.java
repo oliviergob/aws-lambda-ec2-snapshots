@@ -19,11 +19,11 @@ public class Ec2UtilsTest {
 		regionList = Ec2Utils.loadRegions("asdjasd");
 		assertEquals(0, regionList.size());
 		
-		regionList =  Ec2Utils.loadRegions("us-east-1,bbbbbbbbbb");
+		regionList =  Ec2Utils.loadRegions("us-east-1|bbbbbbbbbb");
 		assertEquals(1, regionList.size());
 		assertEquals("us-east-1", regionList.get(0));
 		
-		regionList =  Ec2Utils.loadRegions("us-east-1,iiiiiii, eu-west-1");
+		regionList =  Ec2Utils.loadRegions("us-east-1|iiiiiii| eu-west-1");
 		assertEquals(2, regionList.size());
 		assertEquals("us-east-1", regionList.get(0));
 		assertEquals("eu-west-1", regionList.get(1));

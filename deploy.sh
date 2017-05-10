@@ -16,6 +16,7 @@ fi
 
 # Read other configuration from config.json
 region=$(jq -r '.deploymentRegion' config.json)
+managementRegion=$(jq -r '.managementRegions' config.json)
 appName=$(jq -r '.appName' config.json)
 
 cd functions
@@ -46,7 +47,7 @@ for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
   aws lambda update-function-configuration \
     --region $region \
     --function-name $functionName \
-    --environment fileb://./config.json >/dev/null
+    --environment Variables={REGIONS=$managementRegion} >/dev/null
 
   echo "Function $functionName updated"
 done

@@ -14,7 +14,7 @@ public class Ec2Utils {
 	
 	/**
 	 * This method reads a comma separated list of regions and validated them
-	 * @param regionsConfig - the comma separated list of region to load
+	 * @param regionsConfig - the pipe separated list of region to load
 	 * @return - a List with the region names
 	 */
 	public static List<String> loadRegions(String regionsConfig)
@@ -29,7 +29,7 @@ public class Ec2Utils {
 		}
 		
 		// Let's split the different configuration item
-		for (String regionName : regionsConfig.split(","))
+		for (String regionName : regionsConfig.split("\\|"))
 		{
 			regionName = regionName.trim();
 			try
