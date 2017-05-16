@@ -25,7 +25,6 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.Volume;
 import com.amazonaws.services.lambda.runtime.Context;
-import com.gobslog.ec2.Ec2Utils;
 import com.gobslog.ec2.snapshot.ParseException;
 import com.gobslog.ec2.snapshot.SnapshotConfig;
 
@@ -66,44 +65,19 @@ public class Ec2SnapshotTaker {
     
     public void lambdaHandler(Map<String,Object> input, Context context) {
     	   	
-    	// Getting the regions take snapshot in
-    	String regionsString = System.getenv("REGIONS");
- 
-    	// Validating and loading the regions
-    	List<String> regions = Ec2Utils.loadRegions(regionsString);
-    	
-    	
-    	logger.info("Snapshot regions configured "+regionsString);
-		
-    	if (regions == null || regions.isEmpty())
-    		takeSnapshotsForRegion(null);
-    	else
-    		for (String region : regions)
-    		{
-    			takeSnapshotsForRegion(region);
-    		}
+    	takeSnapshotsForRegion();
         
     }
     
     
     /**
-     * Method taking Snapshot for a region
-     * @param region - the region to take snapshots in
+     * Method taking Snapshot for the region the function has been deployed in
      */
-    private void takeSnapshotsForRegion(String region)
+    private void takeSnapshotsForRegion()
     {
     	// Setting up the EC2 Client Builder with the correct region
-    	AmazonEC2ClientBuilder builder;
-    	if (region != null)
-    	{
-    		logger.info("Taking snapshots for region "+region);
-    		builder = AmazonEC2Client.builder().withRegion(region);
-    	}
-    	else
-    	{
-    		logger.info("Taking snapshots for default region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
-    		builder = AmazonEC2Client.builder();
-    	}
+    	AmazonEC2ClientBuilder builder = AmazonEC2Client.builder();
+    	logger.info("Taking snapshots for region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
     		
 		
     	// Building EC2 CLient

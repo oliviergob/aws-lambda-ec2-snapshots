@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -19,7 +18,6 @@ import com.amazonaws.services.ec2.model.Snapshot;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.util.StringUtils;
-import com.gobslog.ec2.Ec2Utils;
 
 public class Ec2SnapshotDeleter {
 	
@@ -31,11 +29,6 @@ public class Ec2SnapshotDeleter {
     
     public void lambdaHandler(Map<String,Object> input, Context context) {
     	
-    	// Getting the regions delete snapshot from
-    	String regionsString = System.getenv("REGIONS");
-    	// Validating and loading the regions
-    	List<String> regions = Ec2Utils.loadRegions(regionsString);
-    	
 		Calendar todayCal = Calendar.getInstance();
 		todayCal.set(Calendar.HOUR_OF_DAY, 0); 
 		todayCal.set(Calendar.MINUTE, 0);
@@ -46,35 +39,19 @@ public class Ec2SnapshotDeleter {
 		
 		logger.info("Today's date "+Ec2SnapshotTaker.DATE_FORMAT.format(today));
 		
-    	if (regions == null || regions.isEmpty())
-    		deleteSnapshotsForRegion(null, today);
-    	else
-    		for (String region : regions)
-    		{
-    			deleteSnapshotsForRegion(region, today);
-    		}
+		deleteSnapshotsForRegion(today);
         
     }
     
     
     /**
-     * Method deleting Snapshot for a region
-     * @param region - the region to take snapshots in
+     * Method deleting Snapshot for the region the Lambda function has been deployed in
      */
-    private void deleteSnapshotsForRegion(String region, Date today)
+    private void deleteSnapshotsForRegion( Date today)
     {
     	// Setting up the EC2 Client Builder with the correct region
-    	AmazonEC2ClientBuilder builder;
-    	if (region != null)
-    	{
-    		logger.info("Deleting snapshots for region "+region);
-    		builder = AmazonEC2Client.builder().withRegion(region);
-    	}
-    	else
-    	{
-    		logger.info("Deleting snapshots for default region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
-    		builder = AmazonEC2Client.builder();
-    	}
+    	AmazonEC2ClientBuilder builder = AmazonEC2Client.builder();
+    	logger.info("Deleting snapshots for region "+Regions.fromName(System.getenv("AWS_DEFAULT_REGION")).getName());
     	
     	// Building EC2 CLient
 		ec2Client = builder.build();

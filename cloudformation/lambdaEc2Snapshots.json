@@ -4,7 +4,7 @@
           "ec2SnapShotTakerPolicy" : {
             "Type" : "AWS::IAM::ManagedPolicy",
             "Properties" : {
-              "Description" : "Policy for takning snapshots",
+              "Description" : { "Fn::Join" : [ "", [ "Policy for takning snapshots in ", { "Ref" : "AWS::Region" } ] ] },
               "Path" : "/",
               "PolicyDocument" :   {
                   "Version": "2012-10-17",
@@ -19,7 +19,12 @@
                           ],
                           "Resource": [
                               "*"
-                          ]
+                          ],
+                          "Condition": {
+                              "StringEquals": {
+                                  "ec2:Region": { "Ref" : "AWS::Region" }
+                              }
+                          }
                       },
                       {
                           "Sid": "Stmt1490792501000",
@@ -29,7 +34,12 @@
                           ],
                           "Resource": [
                               "arn:aws:ec2:*::snapshot/*"
-                          ]
+                          ],
+                          "Condition": {
+                              "StringEquals": {
+                                  "ec2:Region": { "Ref" : "AWS::Region" }
+                              }
+                          }
                       }
                   ]
               }
@@ -38,7 +48,7 @@
           "ec2SnapShotDeleterPolicy" : {
             "Type" : "AWS::IAM::ManagedPolicy",
             "Properties" : {
-              "Description" : "Policy for deleting snapshots",
+              "Description" : { "Fn::Join" : [ "", [ "Policy for deleting snapshots in ", { "Ref" : "AWS::Region" } ] ] },
               "Path" : "/",
               "PolicyDocument" :   {
                   "Version": "2012-10-17",
@@ -52,7 +62,12 @@
                           ],
                           "Resource": [
                               "*"
-                          ]
+                          ],
+                          "Condition": {
+                              "StringEquals": {
+                                  "ec2:Region": { "Ref" : "AWS::Region" }
+                              }
+                          }
                       }
                   ]
               }
@@ -75,7 +90,8 @@
                },
                "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                                      { "Ref":  "ec2SnapShotTakerPolicy" }],
-               "RoleName": "ec2SnapshotTakerLambdaExecutionRole",
+
+               "RoleName": { "Fn::Join" : [ "", [ "ec2SnapshotTakerLambdaExecutionRole", { "Ref" : "AWS::Region" } ] ] },
              }
           },
           "ec2SnapshotDeleterLambdaExecutionRole": {
@@ -95,7 +111,7 @@
                },
                "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                                      { "Ref":  "ec2SnapShotDeleterPolicy" }],
-               "RoleName": "ec2SnapshotDeleterLambdaExecutionRole",
+               "RoleName": { "Fn::Join" : [ "", [ "ec2SnapshotDeleterLambdaExecutionRole", { "Ref" : "AWS::Region" } ] ] },
              }
           },
           "ec2SnapshotTaker": {

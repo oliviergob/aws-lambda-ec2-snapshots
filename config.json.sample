@@ -1,5 +1,4 @@
 {
-  "deploymentRegion": "us-east-1",
-  "managementRegions": "us-east-1|eu-west-1",
+  "deploymentRegions": [ "us-east-1", "eu-west-1" ],
   "appName": "lambdaEc2Snapshots"
 }

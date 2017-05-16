@@ -46,15 +46,13 @@ It will delete any snapshot with a DeletionDate lower or equal to today's date.
 ## Create your config.json
 * Clone the repository and copy config.json.sample to config.json in the root directory
 * Change the properties
-  * deploymentRegion - the ascertain region you want the application to be installed in
-  * managementRegions - pipe separated list of regions to take snapshots in (will use default region if not configured or left blank)
-  * appName - the application name (used by the deploy script to name resources in AWS)
+  * deploymentRegions _[string]_ - the AWS regions you want the application to be deployed in
+  * appName _string_ - the application name (used by the deploy script to name resources in AWS)
 
 E.G.:
 ```
   {
-    "deploymentRegion": "us-east-1",
-    "managementRegions": "us-east-1|eu-west-1",
+    "deploymentRegions": [ "us-east-1", "eu-west-1" ],
     "appName": "lambdaEc2Snapshots"
   }
 ```
@@ -70,5 +68,5 @@ You can also delete the IAM user if it was a temporary one.
 
 
 ### Still left TODO
-* Is the list of region what we really want? Is it not better to deploy the function in each region we want to manage and each function is responsible for its region? (might also allow us to handle a bigger estate with the 5 minute lambda execution limit)
+* Review logging level as it will create lot of noise at the moment with a big estate.
 * Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance

@@ -15,8 +15,7 @@ if [ -z "$found" ]; then
 fi
 
 # Read other configuration from config.json
-region=$(jq -r '.deploymentRegion' config.json)
-managementRegion=$(jq -r '.managementRegions' config.json)
+regions=$(jq -r '.deploymentRegions[]' config.json)
 appName=$(jq -r '.appName' config.json)
 
 cd functions
@@ -28,28 +27,29 @@ if [[ $? != 0 ]]; then
 fi
 
 
-echo
-# Updating Lambda Functions
-for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
-  functionName="${f%.*}"
-  functionName="$(echo "$functionName" | sed 's/.*/\l&/')"
-
-  #Updating the function code
+# For each region configured
+for region in $regions; do
   echo
-  echo "Deploying Code for function $functionName"
-  aws lambda update-function-code \
-    --region $region \
-    --function-name $functionName\
-    --zip-file fileb://./build/distributions/functions.zip >/dev/null
+  echo Deploying functions code in region $region
+  echo
+  # Updating Lambda Functions
+  for f in $(ls -1 src/main/java/com/gobslog/ec2/functions/); do
+    functionName="${f%.*}"
+    functionName="$(echo "$functionName" | sed 's/.*/\l&/')"
 
-  #Updating the function environment variables
-  echo "Updating function environment Variables for $functionName"
-  aws lambda update-function-configuration \
-    --region $region \
-    --function-name $functionName \
-    --environment Variables={REGIONS=$managementRegion} >/dev/null
+    #Updating the function code
+    echo
+    echo "Deploying Code for function $functionName"
+    aws lambda update-function-code \
+      --region $region \
+      --function-name $functionName\
+      --zip-file fileb://./build/distributions/functions.zip >/dev/null
 
-  echo "Function $functionName updated"
+    echo "Function $functionName updated"
+  done
 done
+
+
+
 
 cd ..
