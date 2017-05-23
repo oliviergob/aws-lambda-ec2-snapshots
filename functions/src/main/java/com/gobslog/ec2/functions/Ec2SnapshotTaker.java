@@ -2,6 +2,7 @@ package com.gobslog.ec2.functions;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,8 @@ public class Ec2SnapshotTaker {
 	private static final String SNAPSHOT_WEEKLY = "weekly";
 	/** Monthly Snapshot description used for tagging */
 	private static final String SNAPSHOT_MONTHLY = "monthly";
+	/** Monthly Snapshot description used for tagging */
+	private static final String INSTANCE_TAGS_PARAM = "InstanceTags";
 	/** Date Format - used for tagging the instance */
 	protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -60,11 +63,34 @@ public class Ec2SnapshotTaker {
     private boolean isWeeklySnapshot = false;
     /** Boolean flag saying if monthly snapshot should be taken today */
     private boolean isMonthlySnapshot = false;
+    /** List of tags to be copied from the EC2 instance and added to the snapshots */
+    private List<String> instanceTags = null;
+    
 
     
     
     public void lambdaHandler(Map<String,Object> input, Context context) {
-    	   	
+    	
+    	// Getting the Tags to be taken from the instances down to the snapshot
+    	String instanceTagConfig = System.getenv(INSTANCE_TAGS_PARAM);
+    	
+    	// If no tag config given
+		if (instanceTagConfig == null || instanceTagConfig.length() == 0)
+		{
+			logger.info("No instance tag configured");
+		}
+		else
+		{
+			// Splitting Instance Tags
+			instanceTags =  Arrays.asList(instanceTagConfig.split("\\|"));
+			
+			for (String tag : instanceTags)
+			{
+				logger.info("Will copy tag "+tag+" from instance");
+			}
+
+		}
+
     	takeSnapshotsForRegion();
         
     }
@@ -113,6 +139,8 @@ public class Ec2SnapshotTaker {
     			if (logger.isInfoEnabled())
     				logger.info("Processing instance " + instance.getInstanceId());
     			
+    			List<Tag> instanceTagList = new ArrayList<>();
+    			
     			SnapshotConfig instanceSnapshotConfig = null;
     			String snapshotConfigString = null;
     			
@@ -122,6 +150,12 @@ public class Ec2SnapshotTaker {
     				// Looking for the Snapshot Config Tag
     				if (INSTANCE_TAG_SNAPSHOT_CONFIG.equals(tag.getKey()))
     					snapshotConfigString = tag.getValue();
+    				
+    				// If this is a tag we need to copy from the instance
+    				if (instanceTags != null && instanceTags.contains(tag.getKey()))
+    				{
+    					instanceTagList.add(tag);
+    				}
     			}
     			
     			// If the Snapshot Config Tag was found
@@ -155,7 +189,7 @@ public class Ec2SnapshotTaker {
         				logger.debug("No config given");
     			}
 	    		
-    			processInstanceBlockDevices(instance.getInstanceId(), instance.getBlockDeviceMappings(), instanceSnapshotConfig);
+    			processInstanceBlockDevices(instance.getInstanceId(), instance.getBlockDeviceMappings(), instanceSnapshotConfig, instanceTagList);
     			
         	}
     	}
@@ -167,8 +201,9 @@ public class Ec2SnapshotTaker {
      * @param instanceId - The instance for which the snapshots are being taken
      * @param blockDeviceList - The list of volumes
      * @param instanceSnapshotConfig - The snapshot config set up at the instance level
+     * @param instanceTagList - List of tags to be copied over from the Instance
      */
-    private void processInstanceBlockDevices( String instanceId, List<InstanceBlockDeviceMapping> blockDeviceList,  SnapshotConfig instanceSnapshotConfig)
+    private void processInstanceBlockDevices( String instanceId, List<InstanceBlockDeviceMapping> blockDeviceList,  SnapshotConfig instanceSnapshotConfig, List<Tag> instanceTagList)
     {
     	// Looping through the volumes
 		for (InstanceBlockDeviceMapping instanceDevice : blockDeviceList)
@@ -185,8 +220,8 @@ public class Ec2SnapshotTaker {
 				// If no config has been set up for the volume, let's skip to the next one
 				if (volumeSnapshotConfigString == null)
 				{
-					if (logger.isInfoEnabled())
-						logger.info("Volume " +instanceDevice.getEbs().getVolumeId()+" has no snapshot config, skipping to the next volume" );
+					if (logger.isDebugEnabled())
+						logger.debug("Volume " +instanceDevice.getEbs().getVolumeId()+" has no snapshot config, skipping to the next volume" );
 					
 					continue;
 				}
@@ -213,7 +248,7 @@ public class Ec2SnapshotTaker {
 			
 			
 			// Let's take the appropriate snapshot
-			takeVolumeSnapshot(instanceId, instanceDevice.getDeviceName(), instanceDevice.getEbs().getVolumeId(), volumeSnapshotConfig);
+			takeVolumeSnapshot(instanceId, instanceDevice.getDeviceName(), instanceDevice.getEbs().getVolumeId(), volumeSnapshotConfig, instanceTagList);
 		}
     }
     
@@ -227,20 +262,21 @@ public class Ec2SnapshotTaker {
      * @param deviceName - The name of the device on the instance
      * @param volumeId - The volume to take a snapshot of
      * @param snapshotConfig - The snapshot config to be used
+     * @param instanceTagList - List of tags to be copied over from the Instance
      */
-    private void takeVolumeSnapshot(String instanceId, String deviceName, String volumeId, SnapshotConfig snapshotConfig)
+    private void takeVolumeSnapshot(String instanceId, String deviceName, String volumeId, SnapshotConfig snapshotConfig, List<Tag> instanceTagList)
     {
     	if (isMonthlySnapshot && snapshotConfig.isMonthlySnapshot())
 		{
-    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_MONTHLY, snapshotConfig.getMonthlyRetentionPeriod());
+    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_MONTHLY, snapshotConfig.getMonthlyRetentionPeriod(), instanceTagList);
 		}
     	else if (isWeeklySnapshot && snapshotConfig.isWeeklySnapshot())
     	{
-    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_WEEKLY, snapshotConfig.getWeeklyRetentionPeriod());
+    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_WEEKLY, snapshotConfig.getWeeklyRetentionPeriod(), instanceTagList);
 		}
     	else if (snapshotConfig.isDailySnapshot())
     	{
-    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_DAILY, snapshotConfig.getDailyRetentionPeriod());
+    		takeVolumeSnapshot(instanceId, deviceName, volumeId, SNAPSHOT_DAILY, snapshotConfig.getDailyRetentionPeriod(), instanceTagList);
 		}
     }
     
@@ -251,8 +287,9 @@ public class Ec2SnapshotTaker {
      * @param volumeId - The volume to take a snapshot of
      * @param period - monthly / weekly / daily
      * @param retentionPeriod - in days
+     * @param instanceTagList - List of tags to be copied over from the Instance
      */
-    private void takeVolumeSnapshot(String instanceId, String deviceName,  String volumeId, String period, int retentionPeriod)
+    private void takeVolumeSnapshot(String instanceId, String deviceName,  String volumeId, String period, int retentionPeriod, List<Tag> instanceTagList)
     {
     	
     	String description = period+" snapshot for instance "+instanceId+" volume "+volumeId+" - "+retentionPeriod+" days retention";
@@ -273,6 +310,8 @@ public class Ec2SnapshotTaker {
     	tagList.add(new Tag(SNAPSHOT_TAG_DELETION_DATE, getDeletionDate(retentionPeriod)));
     	// Adding Device Name tag
     	tagList.add(new Tag(SNAPSHOT_TAG_DEVICE_NAME, deviceName));
+    	// Adding tags copied over from the instance
+    	tagList.addAll(instanceTagList);
     	
     	
     	List<String> snapshotIdList = new ArrayList<String>();

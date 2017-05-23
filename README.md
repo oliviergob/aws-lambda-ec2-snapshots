@@ -2,6 +2,8 @@
 
 This project is composed of a set of AWS Lambda Functions to automate EC2 volumes snapshots creation and deletion.
 
+## Version
+ * 1.0.0 - Initial Release
 
 ## Automated Snapshots Creation
 The Lambda function ec2SnapshotTaker is being called daily by a Cloudwatch schedule event.
@@ -68,5 +70,4 @@ You can also delete the IAM user if it was a temporary one.
 
 
 ### Still left TODO
-* Review logging level as it will create lot of noise at the moment with a big estate.
-* Add a configurable list of tags to be carried over from the instance down to the snapshot. A user could want tag its snapshots with an application name or a project name already held by the instance
+* Test how it would perform with a large estate. Can it finish in the allocated 5 minutes? Are there too many API calls? Do we need to create threads to run each instance in parallel?
