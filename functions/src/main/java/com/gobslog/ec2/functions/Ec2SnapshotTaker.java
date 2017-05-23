@@ -41,6 +41,8 @@ public class Ec2SnapshotTaker {
 	protected static final String SNAPSHOT_TAG_DELETION_DATE = "DeletionDate";
 	/** Snapshot Tag - Device Name */
 	private static final String SNAPSHOT_TAG_DEVICE_NAME = "DeviceName";
+	/** Snapshot Tag - Device Name */
+	private static final String SNAPSHOT_TAG_VOLUME_ID = "VolumeId";
 	/** Daily Snapshot description used for tagging */
 	private static final String SNAPSHOT_DAILY = "daily";
 	/** Weekly Snapshot description used for tagging */
@@ -310,6 +312,8 @@ public class Ec2SnapshotTaker {
     	tagList.add(new Tag(SNAPSHOT_TAG_DELETION_DATE, getDeletionDate(retentionPeriod)));
     	// Adding Device Name tag
     	tagList.add(new Tag(SNAPSHOT_TAG_DEVICE_NAME, deviceName));
+    	// Adding Volume Id Tag (for potential Cost Allocation)
+    	tagList.add(new Tag(SNAPSHOT_TAG_VOLUME_ID, volumeId));
     	// Adding tags copied over from the instance
     	tagList.addAll(instanceTagList);
     	
